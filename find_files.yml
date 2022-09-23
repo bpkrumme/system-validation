@@ -1,0 +1,29 @@
+---
+- name: find files by name and parameter
+  hosts: managed
+  become: yes
+  tasks:
+  - name: find files
+    ansible.builtin.find:
+      paths:
+        - /usr
+        - /bin
+        - /opt
+      recurse: yes
+      patterns: [ "{{ search_string }}" ]
+    register: found_files
+  # - name: list found files
+  #   ansible.builtin.debug:
+  #     msg: "{{ found_files | community.general.json_query('files[*].path') }}"
+  - name: register a fact with the results
+    ansible.builtin.set_fact:
+      found_paths: "{{ found_files | community.general.json_query('files[*].path') | join(', ') }}"
+  - name: print contents of fact
+    ansible.builtin.debug:
+      msg: "{{ inventory_hostname }}, {{ found_paths }}"
+  # - name: write CSV file locally
+  #   ansible.builtin.template:
+  #     src: findoutput.csv.j2
+  #     dest: /tmp/findoutput.csv
+  #   delegate_to: localhost
+  #   become: no
